@@ -33,7 +33,7 @@ export default [
                 file: pkg.browser,
                 format: 'umd'
         },
-        name: 'stroom-auth-js',
+        name: 'stroom-ui-components',
         plugins,
         external,
         globals
