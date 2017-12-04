@@ -13,7 +13,7 @@ const plugins = [
         })
     ]
 
-const  external = [ 'react', 'redux', 'crypto', 'react-router-redux', 'react-redux', 'prop-types' ]
+const external = [ 'react', 'redux', 'crypto', 'react-router-redux', 'react-redux', 'prop-types', 'query-string' ]
 
 const globals = {
     crypto: 'crypto',
@@ -21,7 +21,8 @@ const globals = {
     react: 'react',
     redux: 'redux',
     'react-redux': 'react-redux',
-    'prop-types': 'prop-types'
+    'prop-types': 'prop-types',
+    'query-string': 'query-string'
 }
 
 export default [
