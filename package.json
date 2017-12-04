@@ -1,5 +1,5 @@
 {
-  "name": "stroom-ui-components",
+  "name": "stroom-js",
   "version": "1.0.0",
   "description": "JS components for Stroom",
   "main": "dist/bundle.umd.js",

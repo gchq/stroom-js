@@ -33,7 +33,7 @@ export default [
                 file: pkg.browser,
                 format: 'umd'
         },
-        name: 'stroom-ui-components',
+        name: 'stroom-js',
         plugins,
         external,
         globals

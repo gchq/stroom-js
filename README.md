@@ -1,4 +1,4 @@
-# stroom-ui-components
+# stroom-js
 
 This module contains JavaScript components used by other Stroom modules.
 
