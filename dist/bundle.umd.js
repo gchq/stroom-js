@@ -298,7 +298,7 @@ var relativePush = function (path) {
   return reactRouterRedux.push(relativePath)
 };
 
-var SET_CAN_MANAGE_USERS = 'login/SET_CAN_MANAGE_USERS';
+var SET_CAN_MANAGE_USERS = 'authorisation/SET_CAN_MANAGE_USERS';
 
 var initialState$1 = {
   canManageUsers: false
@@ -309,9 +309,7 @@ var authorisationReducer = function (state, action) {
 
   switch (action.type) {
     case SET_CAN_MANAGE_USERS:
-      return 
-          Object.assign({},state,{
-              canManageUsers: action.canManageUsers});
+      return Object.assign({}, state, {canManageUsers: action.canManageUsers })
     default:
       return state
   }
