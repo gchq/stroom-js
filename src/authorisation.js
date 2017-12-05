@@ -1,6 +1,6 @@
 import { authorisationServiceUrl } from './environmentVariables'
 
-export const SET_CAN_MANAGE_USERS = 'login/SET_CAN_MANAGE_USERS'
+export const SET_CAN_MANAGE_USERS = 'authorisation/SET_CAN_MANAGE_USERS'
 
 const initialState = {
   canManageUsers: false
@@ -9,9 +9,7 @@ const initialState = {
 export const authorisationReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_CAN_MANAGE_USERS:
-      return 
-          Object.assign({},state,{
-              canManageUsers: action.canManageUsers})
+      return Object.assign({}, state, {canManageUsers: action.canManageUsers })
     default:
       return state
   }
