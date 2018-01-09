@@ -235,69 +235,6 @@ b){var c={},d;for(d=0;d<b.length;d++)void 0!==a[b[d]]&&(c[b[d]]=a[b[d]]);return 
 "undefined"!=='object'&&module.exports&&(module.exports=sjcl);"function"===typeof undefined&&undefined([],function(){return sjcl});
 });
 
-/*
- * Copyright 2017 Crown Copyright
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
- * This file is a wrapper for all environment variables. It lets us do a bit of simple mappings
- * and augmentations. E.g. the authentication, token, and user services are all on the same
- * physical service but we can split these up here, decoupling the different areas of the app a bit.
- */
-
-var authenticationServiceUrl = function () {
-  return ((process.env.REACT_APP_AUTH_SERVICE) + "/authentication/v1")
-};
-
-var authorisationServiceUrl = function () {
-  return ((process.env.REACT_APP_STROOM_URL) + "/api/authorisation/v1")
-};
-
-var authUiAdvertisedUrl = function () {
-  return process.env.REACT_APP_ADVERTISED_URL
-};
-
-var rootPath = function () {
-  return process.env.REACT_APP_ROOT_PATH
-};
-
-var appClientId = function () {
-  return process.env.REACT_APP_CLIENT_ID
-};
-
-/*
- * Copyright 2017 Crown Copyright
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var relativePush = function (path) {
-  var relativePath = rootPath() + path;
-  return reactRouterRedux.push(relativePath)
-};
-
 var SET_CAN_MANAGE_USERS = 'authorisation/SET_CAN_MANAGE_USERS';
 
 var initialState$1 = {
@@ -309,7 +246,7 @@ var authorisationReducer = function (state, action) {
 
   switch (action.type) {
     case SET_CAN_MANAGE_USERS:
-      return Object.assign({}, state, {canManageUsers: action.canManageUsers })
+      return Object.assign({}, state, {canManageUsers: action.canManageUsers})
     default:
       return state
   }
@@ -322,9 +259,9 @@ var setCanManagerUsers = function (canManageUsers) {
   }
 };
 
-var canManageUsers = function (idToken) {
+var canManageUsers = function (idToken, authorisationServiceUrl) {
   return function (dispatch) {
-    var canManageUsersUrl = (authorisationServiceUrl()) + "/canManageUsers";
+    var canManageUsersUrl = authorisationServiceUrl + "/canManageUsers";
     return fetch(canManageUsersUrl, {
       headers: {
         'Accept': 'application/json',
@@ -377,7 +314,7 @@ var authenticationReducer = function (state, action) {
       return Object.assign({}, state, {
         idToken: action.idToken
       })
-      
+
     default:
       return state
   }
@@ -390,10 +327,9 @@ function changeIdToken (idToken) {
   }
 }
 
-var sendAuthenticationRequest = function (referrer) {
+var sendAuthenticationRequest = function (referrer, uiUrl, appClientId, authenticationServiceUrl) {
   return function (dispatch, getState) {
-    var clientId = appClientId();
-    var redirectUrl = (authUiAdvertisedUrl()) + "/handleAuthenticationResponse";
+    var redirectUrl = uiUrl + "/handleAuthenticationResponse";
     var state = '';
 
     // Create nonce and store, and create nonce hash
@@ -406,17 +342,17 @@ var sendAuthenticationRequest = function (referrer) {
     localStorage.setItem('preAuthenticationRequestReferrer', referrer);
 
     // Compose the new URL
-    var authenticationRequestParams = "?scope=openid&response_type=code&client_id=" + clientId + "&redirect_url=" + redirectUrl + "&state=" + state + "&nonce=" + nonceHash;
-    var authenticationRequestUrl = (authenticationServiceUrl()) + "/authenticate/" + authenticationRequestParams;
+    var authenticationRequestParams = "?scope=openid&response_type=code&client_id=" + appClientId + "&redirect_url=" + redirectUrl + "&state=" + state + "&nonce=" + nonceHash;
+    var authenticationRequestUrl = authenticationServiceUrl + "/authenticate/" + authenticationRequestParams;
 
     // We hand off to the authenticationService.
     window.location.href = authenticationRequestUrl;
   }
 };
 
-var handleAuthenticationResponse = function (accessCode) {
+var handleAuthenticationResponse = function (accessCode, authenticationServiceUrl, authorisationServiceUrl) {
   return function (dispatch) {
-    var idTokenRequestUrl = (authenticationServiceUrl()) + "/idToken?accessCode=" + accessCode;
+    var idTokenRequestUrl = authenticationServiceUrl + "/idToken?accessCode=" + accessCode;
 
     // The cookie including the sessionId will be sent along with this request.
     // The 'credentials' key makes this happen.
@@ -442,14 +378,14 @@ var handleAuthenticationResponse = function (accessCode) {
         localStorage.removeItem('nonce');
         localStorage.removeItem('preAuthenticationRequestReferrer');
         dispatch(changeIdToken(idToken));
-        dispatch(canManageUsers(idToken));
+        dispatch(canManageUsers(idToken, authorisationServiceUrl));
       } else {
         console.error('Nonce does not match.');
         // We fall through and push to the referrer, which will mean we attempt log in again.
         // Possibly we could add an error message here, so the user can understand why they
         // are being asked to log in again.
       }
-      dispatch(relativePush(referrer));
+      dispatch(reactRouterRedux.push(referrer));
     });
   }
 };
@@ -480,7 +416,11 @@ var AuthenticationRequest = (function (Component$$1) {
   AuthenticationRequest.prototype.constructor = AuthenticationRequest;
 
   AuthenticationRequest.prototype.componentDidMount = function componentDidMount () {
-    this.context.store.dispatch(sendAuthenticationRequest(this.props.referrer));
+    this.context.store.dispatch(sendAuthenticationRequest(
+      this.props.referrer,
+      this.props.uiUrl,
+      this.props.appClientId,
+      this.props.authenticationServiceUrl));
   };
 
   AuthenticationRequest.prototype.render = function render () {
@@ -495,7 +435,10 @@ AuthenticationRequest.contextTypes = {
 };
 
 AuthenticationRequest.PropTypes = {
-  referrer: PropTypes__default.string.isRequired
+  referrer: PropTypes__default.string.isRequired,
+  uiUrl: PropTypes__default.string.isRequired,
+  appClientId: PropTypes__default.string.isRequired,
+  authenticationServiceUrl: PropTypes__default.string.isRequired
 };
 
 var mapStateToProps = function (state) { return ({
@@ -507,7 +450,7 @@ var mapDispatchToProps = function (dispatch) { return redux.bindActionCreators({
 var AuthenticationRequest$1 = reactRedux.connect(
   mapStateToProps,
   mapDispatchToProps
-)(AuthenticationRequest);
+)(AuthenticationRequest)
 
 /*
  * Copyright 2017 Crown Copyright
@@ -536,7 +479,8 @@ var HandleAuthenticationResponse = (function (Component$$1) {
 
   HandleAuthenticationResponse.prototype.componentDidMount = function componentDidMount () {
     var accessCode = queryString.parse(this.context.router.route.location.search).accessCode;
-    this.context.store.dispatch(handleAuthenticationResponse(accessCode));
+    this.context.store.dispatch(
+      handleAuthenticationResponse(accessCode, this.props.authenticationServiceUrl, this.props.authorisationServiceUrl));
   };
 
   HandleAuthenticationResponse.prototype.render = function render () {
@@ -553,6 +497,11 @@ HandleAuthenticationResponse.contextTypes = {
   })
 };
 
+HandleAuthenticationResponse.PropTypes = {
+  authenticationServiceUrl: PropTypes__default.string.isRequired,
+  authorisationServiceUrl: PropTypes__default.string.isRequired
+};
+
 var mapStateToProps$1 = function (state) { return ({
 }); };
 
@@ -562,7 +511,7 @@ var mapDispatchToProps$1 = function (dispatch) { return redux.bindActionCreators
 var HandleAuthenticationResponse$1 = reactRedux.connect(
   mapStateToProps$1,
   mapDispatchToProps$1
-)(HandleAuthenticationResponse);
+)(HandleAuthenticationResponse)
 
 exports.authenticationReducer = authenticationReducer;
 exports.authorisationReducer = authorisationReducer;
