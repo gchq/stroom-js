@@ -38,8 +38,10 @@ export const canManageUsers = (idToken, authorisationServiceUrl) => {
       .then((response) => {
         if (response.status === 401) {
           dispatch(setCanManagerUsers(false))
-        } else {
+        } else if (response.status === 200) {
           dispatch(setCanManagerUsers(true))
+        } else {
+          console.log('Unknown response from the authorisation service! ' + response)
         }
       })
   }
