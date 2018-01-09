@@ -26,7 +26,8 @@ import { handleAuthenticationResponse } from './authentication.js'
 class HandleAuthenticationResponse extends Component {
   componentDidMount () {
     const accessCode = queryString.parse(this.context.router.route.location.search).accessCode
-    this.context.store.dispatch(handleAuthenticationResponse(accessCode))
+    this.context.store.dispatch(
+      handleAuthenticationResponse(accessCode, this.props.authenticationServiceUrl, this.props.authorisationServiceUrl))
   }
 
   render () {
@@ -39,6 +40,11 @@ HandleAuthenticationResponse.contextTypes = {
   router: PropTypes.shape({
     history: object.isRequired
   })
+}
+
+HandleAuthenticationResponse.PropTypes = {
+  authenticationServiceUrl: PropTypes.string.isRequired,
+  authorisationServiceUrl: PropTypes.string.isRequired
 }
 
 const mapStateToProps = state => ({
