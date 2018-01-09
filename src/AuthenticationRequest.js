@@ -24,7 +24,11 @@ import { sendAuthenticationRequest } from './authentication.js'
 
 class AuthenticationRequest extends Component {
   componentDidMount () {
-    this.context.store.dispatch(sendAuthenticationRequest(this.props.referrer))
+    this.context.store.dispatch(sendAuthenticationRequest(
+      this.props.referrer,
+      this.props.uiUrl,
+      this.props.appClientId,
+      this.props.authenticationServiceUrl))
   }
 
   render () {
@@ -37,7 +41,10 @@ AuthenticationRequest.contextTypes = {
 }
 
 AuthenticationRequest.PropTypes = {
-  referrer: PropTypes.string.isRequired
+  referrer: PropTypes.string.isRequired,
+  uiUrl: PropTypes.string.isRequired,
+  appClientId: PropTypes.string.isRequired,
+  authenticationServiceUrl: PropTypes.string.isRequired
 }
 
 const mapStateToProps = state => ({

@@ -17,11 +17,9 @@
 import jwtDecode from 'jwt-decode'
 import uuidv4 from 'uuid/v4'
 import sjcl from 'sjcl'
+import { push } from 'react-router-redux'
 
-import { relativePush } from './relativePush'
 import { canManageUsers } from './authorisation'
-
-import { authenticationServiceUrl, authUiAdvertisedUrl, appClientId } from './environmentVariables'
 
 export const TOKEN_ID_CHANGE = 'authentication/TOKEN_ID_CHANGE'
 
@@ -35,7 +33,7 @@ export const authenticationReducer = (state = initialState, action) => {
       return Object.assign({}, state, {
         idToken: action.idToken
       })
-      
+
     default:
       return state
   }
@@ -48,10 +46,9 @@ function changeIdToken (idToken) {
   }
 }
 
-export const sendAuthenticationRequest = (referrer) => {
+export const sendAuthenticationRequest = (referrer, uiUrl, appClientId, authenticationServiceUrl) => {
   return (dispatch, getState) => {
-    const clientId = appClientId()
-    const redirectUrl = `${authUiAdvertisedUrl()}/handleAuthenticationResponse`
+    const redirectUrl = `${uiUrl}/handleAuthenticationResponse`
     const state = ''
 
     // Create nonce and store, and create nonce hash
@@ -64,17 +61,17 @@ export const sendAuthenticationRequest = (referrer) => {
     localStorage.setItem('preAuthenticationRequestReferrer', referrer)
 
     // Compose the new URL
-    const authenticationRequestParams = `?scope=openid&response_type=code&client_id=${clientId}&redirect_url=${redirectUrl}&state=${state}&nonce=${nonceHash}`
-    const authenticationRequestUrl = `${authenticationServiceUrl()}/authenticate/${authenticationRequestParams}`
+    const authenticationRequestParams = `?scope=openid&response_type=code&client_id=${appClientId}&redirect_url=${redirectUrl}&state=${state}&nonce=${nonceHash}`
+    const authenticationRequestUrl = `${authenticationServiceUrl}/authenticate/${authenticationRequestParams}`
 
     // We hand off to the authenticationService.
     window.location.href = authenticationRequestUrl
   }
 }
 
-export const handleAuthenticationResponse = (accessCode) => {
+export const handleAuthenticationResponse = (accessCode, authenticationServiceUrl, authorisationServiceUrl) => {
   return (dispatch) => {
-    const idTokenRequestUrl = `${authenticationServiceUrl()}/idToken?accessCode=${accessCode}`
+    const idTokenRequestUrl = `${authenticationServiceUrl}/idToken?accessCode=${accessCode}`
 
     // The cookie including the sessionId will be sent along with this request.
     // The 'credentials' key makes this happen.
@@ -100,14 +97,14 @@ export const handleAuthenticationResponse = (accessCode) => {
         localStorage.removeItem('nonce')
         localStorage.removeItem('preAuthenticationRequestReferrer')
         dispatch(changeIdToken(idToken))
-        dispatch(canManageUsers(idToken))
+        dispatch(canManageUsers(idToken, authorisationServiceUrl))
       } else {
         console.error('Nonce does not match.')
         // We fall through and push to the referrer, which will mean we attempt log in again.
         // Possibly we could add an error message here, so the user can understand why they
         // are being asked to log in again.
       }
-      dispatch(relativePush(referrer))
+      dispatch(push(referrer))
     })
   }
 }

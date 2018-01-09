@@ -1,5 +1,3 @@
-import { authorisationServiceUrl } from './environmentVariables'
-
 export const SET_CAN_MANAGE_USERS = 'authorisation/SET_CAN_MANAGE_USERS'
 
 const initialState = {
@@ -9,7 +7,7 @@ const initialState = {
 export const authorisationReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_CAN_MANAGE_USERS:
-      return Object.assign({}, state, {canManageUsers: action.canManageUsers })
+      return Object.assign({}, state, {canManageUsers: action.canManageUsers})
     default:
       return state
   }
@@ -22,9 +20,9 @@ const setCanManagerUsers = (canManageUsers) => {
   }
 }
 
-export const canManageUsers = (idToken) => {
+export const canManageUsers = (idToken, authorisationServiceUrl) => {
   return (dispatch) => {
-    const canManageUsersUrl = `${authorisationServiceUrl()}/canManageUsers`
+    const canManageUsersUrl = `${authorisationServiceUrl}/canManageUsers`
     return fetch(canManageUsersUrl, {
       headers: {
         'Accept': 'application/json',
