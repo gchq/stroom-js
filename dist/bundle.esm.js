@@ -270,8 +270,10 @@ var canManageUsers = function (idToken, authorisationServiceUrl) {
       .then(function (response) {
         if (response.status === 401) {
           dispatch(setCanManagerUsers(false));
-        } else {
+        } else if (response.status === 200) {
           dispatch(setCanManagerUsers(true));
+        } else {
+          console.log('Unknown response from the authorisation service! ' + response);
         }
       })
   }
