@@ -1,29 +1,35 @@
 export const SET_CAN_MANAGE_USERS = 'authorisation/SET_CAN_MANAGE_USERS'
+export const SET_APP_PERMISSION = 'authorisation/SET_APP_PERMISSION'
 
 const initialState = {
-  canManageUsers: false
+  appPermissions: []
 }
 
 export const authorisationReducer = (state = initialState, action) => {
   switch (action.type) {
-    case SET_CAN_MANAGE_USERS:
-      return Object.assign({}, state, {canManageUsers: action.canManageUsers})
+    case SET_APP_PERMISSION:
+      return Object.assign(
+        state, 
+        {appPermissions:
+          Object.assign(state.appPermissions, {[action.appPermission]: action.hasAppPermission})}
+      )
     default:
       return state
   }
 }
 
-const setCanManagerUsers = (canManageUsers) => {
+const setHasAppPermission = (permission, hasAppPermission) => {
   return {
-    type: SET_CAN_MANAGE_USERS,
-    canManageUsers: canManageUsers
+    type: SET_APP_PERMISSION,
+    permission,
+    hasAppPermission
   }
 }
 
-export const canManageUsers = (idToken, authorisationServiceUrl) => {
+export const hasAppPermission = (idToken, authorisationServiceUrl, permission) => {
   return (dispatch) => {
-    const canManageUsersUrl = `${authorisationServiceUrl}/canManageUsers`
-    return fetch(canManageUsersUrl, {
+    const hasAppPermissionUrl = `${authorisationServiceUrl}/hasAppPermission`
+    return fetch(hasAppPermissionUrl, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -32,14 +38,14 @@ export const canManageUsers = (idToken, authorisationServiceUrl) => {
       method: 'post',
       mode: 'cors',
       body: JSON.stringify({
-        permission: 'Manage Users'
+        permission
       })
     })
       .then((response) => {
         if (response.status === 401) {
-          dispatch(setCanManagerUsers(false))
+          dispatch(setHasAppPermission(permission, false))
         } else if (response.status === 200) {
-          dispatch(setCanManagerUsers(true))
+          dispatch(setHasAppPermission(permission, true))
         } else {
           console.log('Unknown response from the authorisation service! ' + response)
         }

@@ -19,7 +19,7 @@ import uuidv4 from 'uuid/v4'
 import sjcl from 'sjcl'
 import { push } from 'react-router-redux'
 
-import { canManageUsers } from './authorisation'
+import { hasAppPermission } from './authorisation'
 
 export const TOKEN_ID_CHANGE = 'authentication/TOKEN_ID_CHANGE'
 
@@ -97,7 +97,7 @@ export const handleAuthenticationResponse = (accessCode, authenticationServiceUr
         localStorage.removeItem('nonce')
         localStorage.removeItem('preAuthenticationRequestReferrer')
         dispatch(changeIdToken(idToken))
-        dispatch(canManageUsers(idToken, authorisationServiceUrl))
+        dispatch(hasAppPermission(idToken, authorisationServiceUrl))
       } else {
         console.error('Nonce does not match.')
         // We fall through and push to the referrer, which will mean we attempt log in again.
